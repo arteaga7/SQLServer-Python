@@ -1,0 +1,54 @@
+# modules.py
+"""This file calls the 'settings.py' file."""
+from pkg.settings import *
+import os
+
+
+def construct_queries(table_list: list[str], receptorRFC_list: list[str]) -> list[str]:
+    """Construct every query for every table"""
+    queries = []
+    # Create placeholders: "?, ?" (needed when using pyodbc)
+    placeholders = ", ".join("?" * len(receptorRFC_list))
+    for table in table_list:
+        query = f"""
+        SELECT TOP 10 *
+        FROM [{table}]
+        WHERE Column1 IN ({placeholders})
+        """
+        queries.append(query)
+    return queries
+
+
+def split_DataFrame(table: str, df: pd.DataFrame, max_rows=600000) -> None:
+    """Split every DataFrame and save it in different excel files,
+    if it has many rows."""
+    total_rows = len(df)
+    if total_rows == 0:
+        print("El DataFrame está vacío. No se guarda ningún archivo.")
+        return
+    # Calculate how many files parts for this DataFrame
+    n_files = math.ceil(total_rows / max_rows)
+    for i in range(n_files):
+        inicio = i * max_rows
+        fin = inicio + max_rows
+        df_part = df.iloc[inicio:fin]
+        file_name = f"{table}_part_{i+1}.xlsx"
+        destination_path = os.path.join(os.getcwd(), path_results, file_name)
+        df_part.to_excel(destination_path, index=False)
+    print(f"Tabla '{table}' guardada con éxito!\n")
+    f.write(f"Tabla '{table}' guardada con éxito!\n")
+
+
+def execute_queries(conn: pyodbc.Connection, table_list: list[str], queries: list[str]) -> None:
+    """
+    SQl queries are performed for every table in "table_list" and for every query.
+    All queries are already built in "queries". All DataFrames are saved.
+    """
+    for table, query in zip(table_list, queries):
+        print("Ejecutando consulta...")
+        t1 = time.time()
+        df = pd.read_sql(query, conn, params=receptorRFC_list)
+        print(f"Tiempo de consulta para la tabla '{table}':", int(
+            time.time() - t1), "segundos.")
+        print("Guardando tabla, espere por favor...")
+        split_DataFrame(table, df, max_rows=600000)
