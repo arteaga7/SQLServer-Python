@@ -14,7 +14,7 @@ SQLServer-Python/
     └── config.py       # Contains all configuration params
     └── modules.py      # Contains all functions
     └── settings.py     # Contains all global variables
-    └── .env            # Contains all secret parameers (not provided)
+    └── .env            # Contains all secret parameters (not provided)
 ```
 
 
@@ -27,10 +27,14 @@ pyodbc==5.3.0, pandas==2.3.3, openpyxl==3.1.5, python-dotenv==1.2.1, pyinstaller
 
 **Usage:**
 Every sql query has the form:
+
 ----
 SELECT TOP 10 *
+
 FROM dbo.[tabla1]
+
 WHERE Column1 IN ('valor1','valor2','valor3')
+
 ----
 
 **Portability:**
